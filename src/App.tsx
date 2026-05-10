@@ -103,6 +103,19 @@ const ExerciseTimer = ({ exercise, onComplete, onCancel }: { exercise: any, onCo
         className="bg-white rounded-[3rem] p-8 max-w-sm w-full space-y-8 shadow-2xl"
       >
         <div className="space-y-4">
+          <div className="flex flex-wrap justify-center gap-2">
+            <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[10px] font-bold uppercase tracking-wider">
+              {exercise.targetMuscleGroup}
+            </span>
+            <span className={cn(
+              "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+              exercise.difficultyLevel === 'Easy' ? "bg-emerald-50 text-emerald-600" :
+              exercise.difficultyLevel === 'Medium' ? "bg-amber-50 text-amber-600" :
+              "bg-rose-50 text-rose-600"
+            )}>
+              {exercise.difficultyLevel}
+            </span>
+          </div>
           <h3 className="text-2xl font-black text-slate-900">{exercise.name}</h3>
           <p className="text-slate-500 text-sm">{exercise.description}</p>
         </div>
@@ -351,6 +364,19 @@ const ExercisePage = () => {
               </div>
             </div>
             <div className="p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md text-[10px] font-bold uppercase">
+                  {ex.targetMuscleGroup}
+                </span>
+                <span className={cn(
+                  "px-2 py-0.5 rounded-md text-[10px] font-bold uppercase",
+                  ex.difficultyLevel === 'Easy' ? "bg-emerald-50 text-emerald-600" :
+                  ex.difficultyLevel === 'Medium' ? "bg-amber-50 text-amber-600" :
+                  "bg-rose-50 text-rose-600"
+                )}>
+                  {ex.difficultyLevel}
+                </span>
+              </div>
               <h4 className="font-bold text-lg text-slate-800 mb-2">{ex.name}</h4>
               <p className="text-slate-600 text-sm mb-4">{ex.description}</p>
               <button 

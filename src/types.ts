@@ -35,5 +35,7 @@ export interface Exercise {
   description: string;
   duration: string;
   durationSeconds: number;
+  targetMuscleGroup: string;
+  difficultyLevel: 'Easy' | 'Medium' | 'Hard';
   image?: string;
 }
