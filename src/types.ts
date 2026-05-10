@@ -33,5 +33,6 @@ export interface Exercise {
   name: string;
   description: string;
   duration: string;
+  durationSeconds: number;
   image?: string;
 }

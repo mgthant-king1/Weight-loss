@@ -33,8 +33,8 @@ export const FOODS: Food[] = [
 ];
 
 export const EXERCISES: Exercise[] = [
-  { name: 'လမ်းလျှောက်ခြင်း (Walking)', description: 'တစ်နေ့ မိနစ် ၃၀ ခန့် ပုံမှန် လမ်းလျှောက်ပေးပါ။', duration: '30 mins' },
-  { name: 'ခုန်ကြိုးခုန်ခြင်း (Jumping Rope)', description: 'ကယ်လိုရီ အမြန်ဆုံး လောင်ကျွမ်းစေသော လေ့ကျင့်ခန်း ဖြစ်သည်။', duration: '15 mins' },
-  { name: 'ယောဂ (Yoga)', description: 'ခန္ဓာကိုယ် ပျော့ပျောင်းစေရန်နှင့် စိတ်ဖိစီးမှု လျော့ကျစေရန် ပြုလုပ်ပါ။', duration: '20 mins' },
-  { name: 'ထိုင်ထလေ့ကျင့်ခန်း (Squats)', description: 'ခြေထောက်နှင့် တင်ပါး ကြွက်သားများ သန်မာစေရန် ပြုလုပ်ပါ။', duration: '3 sets of 15' }
+  { name: 'လမ်းလျှောက်ခြင်း (Walking)', description: 'တစ်နေ့ မိနစ် ၃၀ ခန့် ပုံမှန် လမ်းလျှောက်ပေးပါ။', duration: '30 mins', durationSeconds: 1800 },
+  { name: 'ခုန်ကြိုးခုန်ခြင်း (Jumping Rope)', description: 'ကယ်လိုရီ အမြန်ဆုံး လောင်ကျွမ်းစေသော လေ့ကျင့်ခန်း ဖြစ်သည်။', duration: '15 mins', durationSeconds: 900 },
+  { name: 'ယောဂ (Yoga)', description: 'ခန္ဓာကိုယ် ပျော့ပျောင်းစေရန်နှင့် စိတ်ဖိစီးမှု လျော့ကျစေရန် ပြုလုပ်ပါ။', duration: '20 mins', durationSeconds: 1200 },
+  { name: 'ထိုင်ထလေ့ကျင့်ခန်း (Squats)', description: 'ခြေထောက်နှင့် တင်ပါး ကြွက်သားများ သန်မာစေရန် ပြုလုပ်ပါ။', duration: '5 mins', durationSeconds: 300 }
 ];
