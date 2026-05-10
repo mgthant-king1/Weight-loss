@@ -6,6 +6,7 @@ export interface UserProfile {
   currentWeight?: number;
   targetWeight?: number;
   height?: number;
+  weightUnit?: 'kg' | 'lb';
   createdAt?: any;
 }
 

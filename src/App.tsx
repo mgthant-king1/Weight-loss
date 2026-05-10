@@ -142,9 +142,16 @@ const ExerciseTimer = ({ exercise, onComplete, onCancel }: { exercise: any, onCo
 // --- Pages ---
 
 const Dashboard = ({ profile, progress, onSetTab }: { profile: UserProfile, progress: ProgressEntry[], onSetTab: (tab: string) => void }) => {
+  const unit = profile.weightUnit || 'kg';
+  
+  const convert = (val: number) => {
+    if (unit === 'lb') return val * 2.20462;
+    return val;
+  };
+
   const chartData = progress.map(p => ({
     date: format(p.date.toDate(), 'MMM dd'),
-    weight: p.weight
+    weight: parseFloat(convert(p.weight).toFixed(1))
   })).reverse();
 
   const currentWeight = progress[0]?.weight || profile.currentWeight || 0;
@@ -180,12 +187,12 @@ const Dashboard = ({ profile, progress, onSetTab }: { profile: UserProfile, prog
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold">သင့်အတွက် အကြံပြုချက်</h3>
               <div className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
-                {toGo > 10 ? "Intensive Plan" : "Normal Plan"}
+                {toGo > (unit === 'kg' ? 10 : 22) ? "Intensive Plan" : "Normal Plan"}
               </div>
             </div>
             <p className="text-emerald-50 leading-relaxed">
               {toGo > 0 
-                ? `ရည်မှန်းချက်ပြည့်ဖို့ ${toGo.toFixed(1)}kg လိုပါသေးတယ်။ ${toGo > 10 ? "လေ့ကျင့်ခန်းကို ပိုတိုးလုပ်ပြီး အချိုလျှော့စားပေးပါ။" : "လမ်းမှန်ပေါ်ရောက်နေပါပြီ၊ ပုံမှန်လေး ဆက်လုပ်သွားပါ။"}`
+                ? `ရည်မှန်းချက်ပြည့်ဖို့ ${convert(toGo).toFixed(1)}${unit} လိုပါသေးတယ်။ ${toGo > (unit === 'kg' ? 10 : 22) ? "လေ့ကျင့်ခန်းကို ပိုတိုးလုပ်ပြီး အချိုလျှော့စားပေးပါ။" : "လမ်းမှန်ပေါ်ရောက်နေပါပြီ၊ ပုံမှန်လေး ဆက်လုပ်သွားပါ။"}`
                 : "ဂုဏ်ယူပါတယ်! သင်ဟာ ရည်မှန်းချက်ကို ရောက်ရှိနေပါပြီ။ လက်ရှိဝိတ်ကို ထိန်းသိမ်းထားဖို့ ဆက်လက်ကြိုးစားပါ။"}
             </p>
             <div className="flex flex-wrap gap-2 pt-2">
@@ -205,7 +212,7 @@ const Dashboard = ({ profile, progress, onSetTab }: { profile: UserProfile, prog
             </div>
             <div>
               <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">လက်ရှိဝိတ်</p>
-              <p className="text-2xl font-black text-slate-900">{currentWeight} kg</p>
+              <p className="text-2xl font-black text-slate-900">{convert(currentWeight).toFixed(1)} {unit}</p>
             </div>
           </div>
         </Card>
@@ -216,7 +223,7 @@ const Dashboard = ({ profile, progress, onSetTab }: { profile: UserProfile, prog
             </div>
             <div>
               <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">ရည်မှန်းချက်</p>
-              <p className="text-2xl font-black text-slate-900">{targetWeight} kg</p>
+              <p className="text-2xl font-black text-slate-900">{convert(targetWeight).toFixed(1)} {unit}</p>
             </div>
           </div>
         </Card>
@@ -227,7 +234,7 @@ const Dashboard = ({ profile, progress, onSetTab }: { profile: UserProfile, prog
             </div>
             <div>
               <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">ကျဆင်းမှု</p>
-              <p className="text-2xl font-black text-slate-900">{lost.toFixed(1)} kg</p>
+              <p className="text-2xl font-black text-slate-900">{convert(lost).toFixed(1)} {unit}</p>
             </div>
           </div>
         </Card>
@@ -235,7 +242,7 @@ const Dashboard = ({ profile, progress, onSetTab }: { profile: UserProfile, prog
 
       <Card className="h-80">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-black text-slate-800">တိုးတက်မှုပြဇယား</h3>
+          <h3 className="text-lg font-black text-slate-800">တိုးတက်မှုပြဇယား ({unit})</h3>
           <button onClick={() => onSetTab('tracker')} className="text-emerald-600 text-xs font-bold hover:underline">အားလုံးကြည့်မည်</button>
         </div>
         {chartData.length > 0 ? (
@@ -371,10 +378,29 @@ const ExercisePage = () => {
   );
 };
 
-const TrackerPage = ({ user, profile, onSave }: { user: User, profile: UserProfile, onSave: () => void }) => {
-  const [weight, setWeight] = useState(profile.currentWeight?.toString() || '');
+const TrackerPage = ({ user, profile, progress, onSave }: { user: User, profile: UserProfile, progress: ProgressEntry[], onSave: () => void }) => {
+  const [unit, setUnit] = useState<'kg' | 'lb'>(profile.weightUnit || 'kg');
+  
+  const convert = (val: number) => {
+    if (unit === 'lb') return (val * 2.20462).toFixed(1);
+    return val.toFixed(1);
+  };
+
+  const displayVal = (kg: number) => {
+    if (unit === 'lb') return (kg * 2.20462).toFixed(1);
+    return kg.toString();
+  };
+
+  const toKg = (val: string) => {
+    const num = parseFloat(val);
+    if (isNaN(num)) return 0;
+    if (unit === 'lb') return num / 2.20462;
+    return num;
+  };
+
+  const [weight, setWeight] = useState(profile.currentWeight ? displayVal(profile.currentWeight) : '');
   const [note, setNote] = useState('');
-  const [target, setTarget] = useState(profile.targetWeight?.toString() || '');
+  const [target, setTarget] = useState(profile.targetWeight ? displayVal(profile.targetWeight) : '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -386,13 +412,16 @@ const TrackerPage = ({ user, profile, onSave }: { user: User, profile: UserProfi
     setError(null);
     setSuccess(false);
 
+    const weightInKg = toKg(weight);
+    const targetInKg = target ? toKg(target) : profile.targetWeight || 0;
+
     try {
       // Create progress entry
       const progressPath = `users/${user.uid}/progress`;
       try {
         await addDoc(collection(db, progressPath), {
           userId: user.uid,
-          weight: parseFloat(weight),
+          weight: weightInKg,
           note,
           date: serverTimestamp()
         });
@@ -405,8 +434,9 @@ const TrackerPage = ({ user, profile, onSave }: { user: User, profile: UserProfi
       const userPath = `users/${user.uid}`;
       try {
         await setDoc(doc(db, userPath), {
-          currentWeight: parseFloat(weight),
-          targetWeight: target ? parseFloat(target) : profile.targetWeight || 0,
+          currentWeight: weightInKg,
+          targetWeight: targetInKg,
+          weightUnit: unit,
           updatedAt: serverTimestamp()
         }, { merge: true });
       } catch (err: any) {
@@ -428,65 +458,103 @@ const TrackerPage = ({ user, profile, onSave }: { user: User, profile: UserProfi
   };
 
   return (
-    <Card className="max-w-md mx-auto">
-      <h3 className="text-xl font-bold text-slate-800 mb-6">ဝိတ်မှတ်တမ်းသွင်းရန်</h3>
-      
-      {error && (
-        <div className="mb-4 bg-rose-50 text-rose-600 p-4 rounded-2xl text-xs flex items-start gap-2 border border-rose-100 animate-shake">
-          <Info size={14} className="shrink-0 mt-0.5" />
-          <p>{error}</p>
+    <div className="space-y-6 pb-20">
+      <Card className="max-w-md mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-slate-800">ဝိတ်မှတ်တမ်းသွင်းရန်</h3>
+          <div className="flex bg-slate-100 p-1 rounded-xl">
+            <button 
+              onClick={() => setUnit('kg')}
+              className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all", unit === 'kg' ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500")}
+            >
+              KG
+            </button>
+            <button 
+              onClick={() => setUnit('lb')}
+              className={cn("px-4 py-1.5 rounded-lg text-xs font-bold transition-all", unit === 'lb' ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500")}
+            >
+              LB
+            </button>
+          </div>
         </div>
-      )}
+        
+        {error && (
+          <div className="mb-4 bg-rose-50 text-rose-600 p-4 rounded-2xl text-xs flex items-start gap-2 border border-rose-100 animate-shake">
+            <Info size={14} className="shrink-0 mt-0.5" />
+            <p>{error}</p>
+          </div>
+        )}
 
-      {success && (
-        <div className="mb-4 bg-emerald-50 text-emerald-600 p-4 rounded-2xl text-sm font-bold flex items-center gap-2 border border-emerald-100">
-          <TrendingDown size={18} />
-          <p>မှတ်တမ်း သိမ်းဆည်းပြီးပါပြီ။</p>
-        </div>
-      )}
+        {success && (
+          <div className="mb-4 bg-emerald-50 text-emerald-600 p-4 rounded-2xl text-sm font-bold flex items-center gap-2 border border-emerald-100">
+            <TrendingDown size={18} />
+            <p>မှတ်တမ်း သိမ်းဆည်းပြီးပါပြီ။</p>
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-600 mb-1">လက်ရှိအလေးချိန် (kg)</label>
-          <input 
-            type="number" 
-            step="0.1" 
-            value={weight}
-            onChange={e => setWeight(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-lg"
-            placeholder="ဥပမာ - ၇၀"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-600 mb-1">ရည်မှန်းချက်အလေးချိန် (kg)</label>
-          <input 
-            type="number" 
-            step="0.1" 
-            value={target}
-            onChange={e => setTarget(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
-            placeholder="ဥပမာ - ၆၀"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-600 mb-1">မှတ်သားချင်တာများ</label>
-          <textarea 
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
-            placeholder="ဒီနေ့ ဘာတွေထူးခြားလဲ..."
-            rows={3}
-          />
-        </div>
-        <button 
-          disabled={loading}
-          className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50"
-        >
-          {loading ? 'သိမ်းဆည်းနေသည်...' : 'သိမ်းဆည်းမည်'}
-        </button>
-      </form>
-    </Card>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-1">လက်ရှိအလေးချိန် ({unit})</label>
+            <input 
+              type="number" 
+              step="0.1" 
+              value={weight}
+              onChange={e => setWeight(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-lg"
+              placeholder={`ဥပမာ - ${unit === 'kg' ? '၇၀' : '၁၅၀'}`}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-1">ရည်မှန်းချက်အလေးချိန် ({unit})</label>
+            <input 
+              type="number" 
+              step="0.1" 
+              value={target}
+              onChange={e => setTarget(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+              placeholder={`ဥပမာ - ${unit === 'kg' ? '၆၀' : '၁၃၀'}`}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-1">မှတ်သားချင်တာများ</label>
+            <textarea 
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+              placeholder="ဒီနေ့ ဘာတွေထူးခြားလဲ..."
+              rows={3}
+            />
+          </div>
+          <button 
+            disabled={loading}
+            className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50"
+          >
+            {loading ? 'သိမ်းဆည်းနေသည်...' : 'သိမ်းဆည်းမည်'}
+          </button>
+        </form>
+      </Card>
+
+      <div className="max-w-md mx-auto space-y-4">
+        <h4 className="font-bold text-slate-800 px-2">မှတ်တမ်းဟောင်းများ</h4>
+        {progress.length > 0 ? (
+          progress.map((p, i) => (
+            <Card key={i} className="flex items-center justify-between py-4">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-400 uppercase">{format(p.date.toDate(), 'PPP')}</span>
+                <span className="text-slate-600 text-sm italic">{p.note || 'မှတ်ချက်မရှိပါ'}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-lg font-black text-slate-900">{convert(p.weight)}</span>
+                <span className="ml-1 text-xs font-bold text-slate-500 uppercase">{unit}</span>
+              </div>
+            </Card>
+          ))
+        ) : (
+          <p className="text-center text-slate-400 text-sm py-10">မှတ်တမ်းများ မရှိသေးပါ။</p>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -619,7 +687,7 @@ export default function App() {
     { id: 'tips', label: 'အကြံပြုချက်များ', icon: BookOpen, component: <TipsPage /> },
     { id: 'diet', label: 'အစားအသောက်', icon: Utensils, component: <DietPage /> },
     { id: 'exercise', label: 'လေ့ကျင့်ခန်းများ', icon: Dumbbell, component: <ExercisePage /> },
-    { id: 'tracker', label: 'ဝိတ်မှတ်တမ်း', icon: LineChart, component: <TrackerPage user={user} profile={profile || {} as any} onSave={() => setActiveTab('dashboard')} /> },
+    { id: 'tracker', label: 'ဝိတ်မှတ်တမ်း', icon: LineChart, component: <TrackerPage user={user} profile={profile || {} as any} progress={progress} onSave={() => setActiveTab('dashboard')} /> },
   ];
 
   const activeTabLabel = tabs.find(t => t.id === activeTab)?.label || '';
