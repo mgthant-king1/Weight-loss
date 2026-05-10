@@ -377,12 +377,14 @@ const TrackerPage = ({ user, profile, onSave }: { user: User, profile: UserProfi
   const [target, setTarget] = useState(profile.targetWeight?.toString() || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!weight) return;
     setLoading(true);
     setError(null);
+    setSuccess(false);
 
     try {
       // Create progress entry
@@ -395,7 +397,8 @@ const TrackerPage = ({ user, profile, onSave }: { user: User, profile: UserProfi
           date: serverTimestamp()
         });
       } catch (err: any) {
-        handleFirestoreError(err, OperationType.WRITE, progressPath, auth);
+        console.error("Progress add error:", err);
+        throw err;
       }
 
       // Update current profile
@@ -407,13 +410,17 @@ const TrackerPage = ({ user, profile, onSave }: { user: User, profile: UserProfi
           updatedAt: serverTimestamp()
         }, { merge: true });
       } catch (err: any) {
-        handleFirestoreError(err, OperationType.UPDATE, userPath, auth);
+        console.error("Profile update error:", err);
+        throw err;
       }
 
       setNote('');
-      onSave();
+      setSuccess(true);
+      setTimeout(() => {
+        onSave();
+      }, 1500);
     } catch (err: any) {
-      setError("အချက်အလက် သိမ်းဆည်း၍ မရပါ။ Firebase Rules လိုအပ်ချက် သို့မဟုတ် Internet Error ဖြစ်နိုင်ပါသည်။");
+      setError(err.message || "အချက်အလက် သိမ်းဆည်း၍ မရပါ။ Firebase တွင် Firestore Database ကို Enable လုပ်ထားခြင်း ရှိမရှိ နှင့် Rules များကို စစ်ဆေးပေးပါ။");
       console.error(err);
     } finally {
       setLoading(false);
@@ -428,6 +435,13 @@ const TrackerPage = ({ user, profile, onSave }: { user: User, profile: UserProfi
         <div className="mb-4 bg-rose-50 text-rose-600 p-4 rounded-2xl text-xs flex items-start gap-2 border border-rose-100 animate-shake">
           <Info size={14} className="shrink-0 mt-0.5" />
           <p>{error}</p>
+        </div>
+      )}
+
+      {success && (
+        <div className="mb-4 bg-emerald-50 text-emerald-600 p-4 rounded-2xl text-sm font-bold flex items-center gap-2 border border-emerald-100">
+          <TrendingDown size={18} />
+          <p>မှတ်တမ်း သိမ်းဆည်းပြီးပါပြီ။</p>
         </div>
       )}
 
@@ -508,17 +522,19 @@ export default function App() {
           if (snap.exists()) {
             setProfile(snap.data() as UserProfile);
           } else {
-            // Initial profile creation is handled in a quiet manner
             setDoc(userRef, {
               uid: u.uid,
               displayName: u.displayName,
               email: u.email,
               photoURL: u.photoURL,
               createdAt: serverTimestamp()
-            }, { merge: true });
+            }, { merge: true }).catch(e => console.error("Auto profile creation failed", e));
           }
         }, (err) => {
           console.error("Profile sync error", err);
+          if (err.message.includes("permission-denied")) {
+            setLoginError("Firebase Firestore Rules ခွင့်ပြုချက်မရှိပါ။ (Missing or insufficient permissions)");
+          }
         });
 
         // Live progress subcollection
