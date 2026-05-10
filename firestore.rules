@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Primitive Definitions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Phase 4: Entity Validations
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid']) &&
+             data.uid == request.auth.uid &&
+             data.uid is string && data.uid.size() <= 128 &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 100)) &&
+             (!('currentWeight' in data) || (data.currentWeight is number && data.currentWeight > 0)) &&
+             (!('targetWeight' in data) || (data.targetWeight is number && data.targetWeight > 0)) &&
+             (!('height' in data) || (data.height is number && data.height > 0));
+    }
+
+    function isValidProgress(data) {
+      return data.keys().hasAll(['userId', 'weight', 'date']) &&
+             data.userId == request.auth.uid &&
+             data.weight is number && data.weight > 0 &&
+             data.date is timestamp &&
+             (!('note' in data) || (data.note is string && data.note.size() <= 1000));
+    }
+
+    // Match blocks
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().createdAt == request.time;
+      allow update: if isOwner(userId) && isValidUser(incoming()) && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'currentWeight', 'targetWeight', 'height', 'updatedAt']) &&
+                    incoming().updatedAt == request.time;
+    }
+
+    match /users/{userId}/progress/{progressId} {
+      allow list: if isOwner(userId);
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidId(progressId) && isValidProgress(incoming());
+      allow update: if isOwner(userId) && isValidProgress(incoming()) && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['weight', 'note', 'date']);
+      allow delete: if isOwner(userId);
+    }
+  }
+}
