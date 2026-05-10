@@ -318,6 +318,17 @@ export default function App() {
   const [authReady, setAuthReady] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  const handleLogin = async () => {
+    try {
+      setLoginError(null);
+      await signInWithGoogle();
+    } catch (err: any) {
+      setLoginError(err.message || 'Login failed');
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
@@ -386,12 +397,22 @@ export default function App() {
             <p className="text-slate-600">ဝိတ်ချခြင်းနှင့် ကျန်းမာရေးအတွက် မြန်မာဘာသာဖြင့် အစအဆုံး အကူအညီပေးမည့် App</p>
           </div>
           <button 
-            onClick={signInWithGoogle}
+            onClick={handleLogin}
             className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-700 py-4 rounded-3xl font-bold shadow-sm hover:bg-slate-50 active:scale-95 transition-all"
           >
             <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
             Google ဖြင့် စတင်မည်
           </button>
+
+          {loginError && (
+            <div className="bg-rose-50 text-rose-600 p-4 rounded-2xl text-xs text-left overflow-auto max-h-32 border border-rose-100">
+              <p className="font-bold mb-1">Error:</p>
+              <p>{loginError}</p>
+              <p className="mt-2 text-[10px] text-rose-400 font-normal">
+                * အကယ်၍ Vercel တွင်သုံးနေပါက Firebase Console တွင် Domain ကို Authorize လုပ်ပေးရန်လိုအပ်ပါသည်။
+              </p>
+            </div>
+          )}
           
           <div className="pt-8 border-t border-slate-100 text-xs text-slate-400 space-y-1">
             <p>Dev BY KHAING MIN THANT</p>

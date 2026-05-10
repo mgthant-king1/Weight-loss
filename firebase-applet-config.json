@@ -1,10 +1,10 @@
 {
-  "projectId": "gen-lang-client-0761817448",
-  "appId": "1:922332744763:web:359c17ab0b68d0a197601e",
-  "apiKey": "AIzaSyCFY9OIiMiAdQCVoUs0E66rQ4_Ga6uwXAc",
-  "authDomain": "gen-lang-client-0761817448.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-f8fc0676-9ce8-4cb3-9bb2-b6509f3e0bbe",
-  "storageBucket": "gen-lang-client-0761817448.firebasestorage.app",
-  "messagingSenderId": "922332744763",
-  "measurementId": ""
+  "projectId": "mgthant-myks-s034",
+  "appId": "1:930569720266:web:9884027df5a143c154ff33",
+  "apiKey": "AIzaSyBzDbGNSB1mAzdp9-s-Paq6pDDly4DD-eA",
+  "authDomain": "mgthant-myks-s034.firebaseapp.com",
+  "storageBucket": "mgthant-myks-s034.firebasestorage.app",
+  "messagingSenderId": "930569720266",
+  "measurementId": "G-T1BKXZG0R1",
+  "databaseURL": "https://mgthant-myks-s034-default-rtdb.firebaseio.com"
 }
