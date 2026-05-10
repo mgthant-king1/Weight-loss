@@ -346,11 +346,33 @@ const DietPage = () => (
 
 const ExercisePage = () => {
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
+  const [filter, setFilter] = useState<'All' | 'Easy' | 'Medium' | 'Hard'>('All');
+
+  const filteredExercises = filter === 'All' 
+    ? EXERCISES 
+    : EXERCISES.filter(ex => ex.difficultyLevel === filter);
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-wrap gap-2 mb-6">
+        {['All', 'Easy', 'Medium', 'Hard'].map((level) => (
+          <button
+            key={level}
+            onClick={() => setFilter(level as any)}
+            className={cn(
+              "px-5 py-2 rounded-xl text-sm font-bold transition-all border",
+              filter === level 
+                ? "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-100" 
+                : "bg-white text-slate-600 border-slate-100 hover:border-emerald-200"
+            )}
+          >
+            {level === 'All' ? 'အားလုံး' : level}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {EXERCISES.map((ex, i) => (
+        {filteredExercises.map((ex, i) => (
           <Card key={i} className="overflow-hidden p-0 group">
             <div className="aspect-video bg-emerald-100 relative">
               <img 
