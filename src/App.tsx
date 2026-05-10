@@ -376,11 +376,13 @@ const TrackerPage = ({ user, profile, onSave }: { user: User, profile: UserProfi
   const [note, setNote] = useState('');
   const [target, setTarget] = useState(profile.targetWeight?.toString() || '');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!weight) return;
     setLoading(true);
+    setError(null);
 
     try {
       // Create progress entry
@@ -392,7 +394,7 @@ const TrackerPage = ({ user, profile, onSave }: { user: User, profile: UserProfi
           note,
           date: serverTimestamp()
         });
-      } catch (err) {
+      } catch (err: any) {
         handleFirestoreError(err, OperationType.WRITE, progressPath, auth);
       }
 
@@ -404,13 +406,14 @@ const TrackerPage = ({ user, profile, onSave }: { user: User, profile: UserProfi
           targetWeight: target ? parseFloat(target) : profile.targetWeight || 0,
           updatedAt: serverTimestamp()
         }, { merge: true });
-      } catch (err) {
+      } catch (err: any) {
         handleFirestoreError(err, OperationType.UPDATE, userPath, auth);
       }
 
       setNote('');
       onSave();
-    } catch (err) {
+    } catch (err: any) {
+      setError("အချက်အလက် သိမ်းဆည်း၍ မရပါ။ Firebase Rules လိုအပ်ချက် သို့မဟုတ် Internet Error ဖြစ်နိုင်ပါသည်။");
       console.error(err);
     } finally {
       setLoading(false);
@@ -420,6 +423,14 @@ const TrackerPage = ({ user, profile, onSave }: { user: User, profile: UserProfi
   return (
     <Card className="max-w-md mx-auto">
       <h3 className="text-xl font-bold text-slate-800 mb-6">ဝိတ်မှတ်တမ်းသွင်းရန်</h3>
+      
+      {error && (
+        <div className="mb-4 bg-rose-50 text-rose-600 p-4 rounded-2xl text-xs flex items-start gap-2 border border-rose-100 animate-shake">
+          <Info size={14} className="shrink-0 mt-0.5" />
+          <p>{error}</p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-slate-600 mb-1">လက်ရှိအလေးချိန် (kg)</label>
@@ -491,41 +502,39 @@ export default function App() {
       setUser(u);
       setAuthReady(true);
       if (u) {
-        // Initial profile fetch
+        // Live profile fetch
         const userRef = doc(db, 'users', u.uid);
-        try {
-          const snap = await getDoc(userRef);
+        const unsubProfile = onSnapshot(userRef, (snap) => {
           if (snap.exists()) {
             setProfile(snap.data() as UserProfile);
           } else {
-            // Create initial profile
-            const newProfile = {
+            // Initial profile creation is handled in a quiet manner
+            setDoc(userRef, {
               uid: u.uid,
               displayName: u.displayName,
               email: u.email,
               photoURL: u.photoURL,
               createdAt: serverTimestamp()
-            };
-            try {
-              await setDoc(userRef, newProfile);
-              setProfile(newProfile as any);
-            } catch (err) {
-              handleFirestoreError(err, OperationType.WRITE, `users/${u.uid}`, auth);
-            }
+            }, { merge: true });
           }
-        } catch (err) {
-          handleFirestoreError(err, OperationType.GET, `users/${u.uid}`, auth);
-        }
+        }, (err) => {
+          console.error("Profile sync error", err);
+        });
 
         // Live progress subcollection
         const progressPath = `users/${u.uid}/progress`;
         const q = query(collection(db, progressPath), orderBy('date', 'desc'));
-        onSnapshot(q, (snapshot) => {
+        const unsubProgress = onSnapshot(q, (snapshot) => {
           const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as ProgressEntry));
           setProgress(data);
         }, (err) => {
-          handleFirestoreError(err, OperationType.LIST, progressPath, auth);
+          console.error("Progress sync error", err);
         });
+
+        return () => {
+          unsubProfile();
+          unsubProgress();
+        };
       }
     });
     return unsubscribe;
