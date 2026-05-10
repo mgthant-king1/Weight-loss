@@ -376,7 +376,7 @@ const ExercisePage = () => {
           <Card key={i} className="overflow-hidden p-0 group">
             <div className="aspect-video bg-emerald-100 relative">
               <img 
-                src={`https://picsum.photos/seed/${ex.name}/600/400?grayscale`} 
+                src={ex.image || `https://picsum.photos/seed/${ex.name}/600/400?grayscale`} 
                 alt={ex.name} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 referrerPolicy="no-referrer"

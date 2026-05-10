@@ -54,7 +54,8 @@ export const EXERCISES: Exercise[] = [
     duration: '30 mins', 
     durationSeconds: 1800,
     targetMuscleGroup: 'Full Body',
-    difficultyLevel: 'Easy'
+    difficultyLevel: 'Easy',
+    image: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&q=80&w=800'
   },
   { 
     name: 'ခုန်ကြိုးခုန်ခြင်း (Jumping Rope)', 
@@ -62,7 +63,8 @@ export const EXERCISES: Exercise[] = [
     duration: '15 mins', 
     durationSeconds: 900,
     targetMuscleGroup: 'Cardio & Legs',
-    difficultyLevel: 'Hard'
+    difficultyLevel: 'Hard',
+    image: 'https://images.unsplash.com/photo-1434608519344-49d77a699e1d?auto=format&fit=crop&q=80&w=800'
   },
   { 
     name: 'ယောဂ (Yoga)', 
@@ -70,7 +72,8 @@ export const EXERCISES: Exercise[] = [
     duration: '20 mins', 
     durationSeconds: 1200,
     targetMuscleGroup: 'Core & Flexibility',
-    difficultyLevel: 'Medium'
+    difficultyLevel: 'Medium',
+    image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=800'
   },
   { 
     name: 'ထိုင်ထလေ့ကျင့်ခန်း (Squats)', 
@@ -78,6 +81,7 @@ export const EXERCISES: Exercise[] = [
     duration: '5 mins', 
     durationSeconds: 300,
     targetMuscleGroup: 'Legs & Glutes',
-    difficultyLevel: 'Medium'
+    difficultyLevel: 'Medium',
+    image: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?auto=format&fit=crop&q=80&w=800'
   }
 ];
